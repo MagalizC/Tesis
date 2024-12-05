@@ -1,0 +1,146 @@
+ import serial
+ import tine
+ import os
+ import re
+ import requests
+
+ def send emaiL(api key, domain, fromemail, to email, subject, text):
+ url = f"https://api.mailgun.net/v3/{domain}/messages"
+ auth = ("api, api_key)
+ data ={
+ "from": from_email,
+ "to": to_email,
+ "subject":subject,
+ "text": text
+}
+response = requests.post(url, authauth, data=data)
+if response.status_code == 200:
+ print("Correo blectrónico enviado con éxito.")
+else
+
+print(f"Error al enviar el correo: {response.status_code}, {response.text}")
+
+código: def open_serial():
+return serial.Serial(
+port='/dev/serial0', # Puerto serie de la Raspberry Pi 4
+baudrate=115200,
+# Velocidad de baudios
+parity=serial.PARITY_NONE,
+stopbits=serial. STOPBITS_ONE,
+bytesize=serial.EIGHTBITS,
+timeout=1
+def parse_line(line):
+match = re.search(r"N1: (\d+), N2: (\d+)", line)
+if match:
+n1 = int(match.group(1))
+n2= int(match.group(2))
+return n1, n2
+match = re.search(r"1: (\d+), N2: (\d+)", line)
+if match:
+n1 int (match.group(1))
+n2= int(match.group(2)) return n1, n2
+return None, None
+
+﻿def main():
+ser None
+error_count=0 
+empty_line_count = 0
+cont = 175
+contb=175
+# Cambiar permisos del puerto serie
+try:
+os.system('sudo chmod -R 777 /dev/serial0')
+except Exception as e:
+return
+try:
+ser = open_serial()
+while True:
+try:
+if ser.in waiting > 0:
+line ser.readline().decode('utf-8').rstrip()
+if line:
+print(line)
+n1, n2 parse_line(line)
+if ni is not None and n2 is not None: 
+#print("N1: (n1}, N2: (n2}")
+print (f"conttador bajo: (cont), conttador alto: (contb}")
+
+print("conttador bajo: (cont), conttador alto: (contb)")
+t1=210 - n1
+t2=210 - n2
+print("ti: (1), t2: (t2}")
+#Enviar a ThingSpeak
+requests.get('https://api.thingspeak.com/update?api_key=JAR16GKQFIV73PSS&Fieldi= str(t1) '&field2= str(t2))
+#Enviar correo si ti o t2 son menores a 100
+if t1< 180 or t2<180:
+cont += 100:
+if cont=180: # tiempo de reenvio en segundos 
+send email(
+API_KEY, DOMAIN, FROM EMAIL, TO EMAIL, SUBJECT,
+"Alerta uno de los tanques tiene BAJO nivel de agua. Valores actuales: ti-(t1), t2-(2) REVISE LA PAGINA WEB"
+)
+cont=0
+contb = 175
+
+else:
+cont = 175
+if t1 > 200 or t2 > 200:
+contb+=1
+if contb==180:#tiempo de reenvio en segundos 
+send email(
+API KEY, DOMAIN, FROM EMAIL, TO EMAIL, SUBJECT,
+"Alerta uno de los tanques tiene ALTO nivel de agua. Valores actuales: t1=(t1), t2=(t2) REVISE LA PAGINA WEB"
+)
+contb=0
+cont = 175
+else:
+contb = 175
+error_count = 0 # Reiniciar el contador de errores tras una lectura exitosa
+empty_line_count = Reiniciar el contador de lineas vacías tras una lectura exitosa
+empty_line_count += 1
+if empty line_count >= 1:
+raise OSError(5, "Demasiadas cadenas vacías consecutivas')
+
+
+except serial. SerialException:
+error_count += 1
+except OSError as e:
+if e.errno == 5:
+error_count += 1
+if empty_line_count >= 1:
+else:
+time.sleep(1) # Espera antes de intentar de nuevo
+else:
+break
+except Exception:
+break
+if error_count >= 1:
+os.system('sudo chmod -R 777 /dev/serial0')
+ser.close()
+time.sleep(2) # Espera antes de reabrir la conexión
+ser = open_serial()
+error_count=0
+empty_line_count = 0
+
+except serial. SerialException:
+pass
+except Exception:
+pass
+finally:
+if 'ser' in locals () and ser.is_open:
+ser.close()
+
+# Datos de la cuenta de Mailgun y del correo
+API_KEY = 'b9981370e34c950f65da3b62ea5eb036-0f1db83d-2e4080c9' 
+DOMAIN= 'sandbox66a6f378995e4e23890087f6dbd1725e.mailgun.org' 
+FROM_EMAIL = 'gladyscardenas172@gmail.com' 
+TO_EMAIL = 'lizeth.c2698@gmail.com"
+SUBJECT = 'Notificacion nivel de agua de tanques en CHAMIZO' 
+TEXT = 'Este es el cuerpo del correo electrónico'
+if name_=="_main_":
+while True:
+try:
+main()
+except Exception as e:
+print("El script ha fallado con un error: {e}")
+time.sleep(5) # Espera antes de reiniciar el script
