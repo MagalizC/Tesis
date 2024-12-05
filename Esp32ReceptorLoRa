@@ -1,0 +1,69 @@
+String lora_band = "915000000"; // Banda de frecuencia (Hz) dependiendo del país/región
+String lora_networkid = "18";   // Identificación de la red LoRa
+String lora_address = "2";      // Dirección del módulo LoRa
+
+int led = 22;  // LED conectado al pin D22 del ESP32
+int ledb = 23; // LED conectado al pin D23 del ESP32
+int vn1;
+int vn2;
+String sd;
+int cont = 0;
+
+String textoEntrada; // Almacena los datos recibidos del emisor
+
+void setup() {
+  pinMode(led, OUTPUT); // Configura el pin del LED como salida
+  pinMode(ledb, OUTPUT); // Configura el pin del LED como salida
+  Serial2.begin(115200, SERIAL_8N1, 16, 17); // Inicializa el puerto serie 2 (pin 16 RXD, 17 TXD UART del ESP32)
+  Serial.begin(115200); // Inicializa el puerto serie a 115200 bps
+  delay(1500);
+  Serial2.println("AT+BAND=" + lora_band); // Configura la banda de frecuencia del módulo LoRa
+  delay(500);
+  Serial2.println("AT+NETWORKID=" + lora_networkid); // Configura la identificación de la red LoRa
+  delay(500);
+  Serial2.println("AT+ADDRESS=" + lora_address); // Configura la dirección del módulo LoRa
+  delay(1000);
+  
+  Serial.println("Inicialización completa");
+}
+
+void loop() {
+  if (Serial2.available()) { // Verifica si hay datos disponibles en el puerto serie 2
+    textoEntrada = Serial2.readString(); // Lee el string recibido desde el transmisor
+    textoEntrada.trim(); // Elimina espacios en blanco al inicio y al final del string
+    
+    int primeraComa = textoEntrada.indexOf(',');
+    int segundaComa = textoEntrada.indexOf(',', primeraComa + 1);
+    int tercerComa = textoEntrada.indexOf(',', segundaComa + 1);
+
+    // Extrae el ID del emisor
+    String emisorID = textoEntrada.substring(0, primeraComa);
+    // Extrae el substring correspondiente al número
+    String valorString = textoEntrada.substring(segundaComa + 1, tercerComa);
+    // Convierte el substring a un número entero
+    int valor = valorString.toInt();
+
+    // Imprime el valor obtenido con el ID del emisor
+    if (emisorID == "+RCV=1") {
+      vn1 = valor;
+      digitalWrite(led, HIGH); // Enciende el LED del Emisor 1
+      delay(200); // Pequeña pausa para que el LED se note
+      digitalWrite(led, LOW); // Apaga el LED del Emisor 1
+      cont++;
+
+    } else if (emisorID == "+RCV=3") {
+      vn2 = valor;
+      digitalWrite(ledb, HIGH); // Enciende el LED del Emisor 2
+      delay(200); // Pequeña pausa para que el LED se note
+      digitalWrite(ledb, LOW); // Apaga el LED del Emisor 2
+      cont++;
+    }
+    
+    sd = "N1: " + String(vn1) + ", N2: " + String(vn2);
+    if (cont == 3) {
+      Serial.println(sd);
+      cont = 0;
+    }
+    //Serial.println(String(cont));
+  }
+}
